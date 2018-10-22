@@ -11,7 +11,7 @@ import os
 #if not os.path.exists('./model/'):
 #	os.mkdir('./model/')
 
-reader = data_reader_c.reader(height=480,width=640,scale_range=[0.8,1.2])
+reader = data_reader_c.reader(height=480,width=640,scale_range=[0.8,1.1])
 
 def draw(img,c,b,multip,name):
 	c = c[0]
@@ -49,24 +49,33 @@ def draw2(img,c,b,multip,name):
 	cv2.imshow(name,img)
 	cv2.waitKey(1)
 
+n_minibatches = 8
 i = 0
 with tf.Session() as sess:
 	saver = tf.train.Saver()
 	M.loadSess('drive/Colab/hand_gesture/model/',sess,init=False)
 	while True:
 		i+=1
-		img, train_dic = reader.get_img()
+
+		for j in range(n_minibatches):
+			img, train_dic = reader.get_img()
+			feed_dict_var={netpart.inpholder:[img],
+				netpart.b_labholder:[train_dic[1]],
+				netpart.c_labholder:[train_dic[0]],
+				netpart.cat_labholder:[train_dic[2]]}
+			if j ==0:
+				sess.run(netpart.zero_ops, feed_dict=feed_dict_var)
+
+			sess.run(netpart.accum_ops, feed_dict=feed_dict_var)
+
 		loss_b1,loss_b2,loss_c,loss_cat,_,b,c = sess.run([netpart.bias1_loss,
 			netpart.bias2_loss,netpart.conf_loss,netpart.cat_loss,
-			netpart.step,netpart.bias,netpart.conf],
-			feed_dict={netpart.inpholder:[img],
-			netpart.b_labholder:[train_dic[1]],
-			netpart.c_labholder:[train_dic[0]],
-			netpart.cat_labholder:[train_dic[2]]})
-		if i%500==0:
+			netpart.step,netpart.bias,netpart.conf], feed_dict=feed_dict_var)
+
+		if i%50==0:
 			#draw(img,c,b,64,'output')
 			print('Iter:\t%d\tBias1_L:%.6f\tBias2_L:%.6f\tConf_L:%.6f\tCat_L:%.6f'%(i,loss_b1,loss_b2,loss_c,loss_cat))
 
 
-		if i%50000==0 and i>0:
+		if i%5000==0 and i>0:
 			saver.save(sess,'drive/Colab/hand_gesture/model/YOLO_%d.ckpt'%i)

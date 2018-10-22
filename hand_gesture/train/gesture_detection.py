@@ -27,14 +27,14 @@ def get_img_coord(img,c,b,cat,multip):
 	for i in range(row):
 		for j in range(col):
 			# print(i,j)
-			if c[i][j][0]>=0.15:
-				#print (c.max())
+			if c[i][j][0]>=0.0:
+				print (c.max())
 				x = abs(int((b[i][j][0]+j+1/2)*multip))
 				y = abs(int((b[i][j][1]+i+1/2)*multip))
 				w = abs(int(b[i][j][2]*640))
 				h = abs(int(b[i][j][3]*480))
 				z = distance_to_camera(KNOWN_WIDTH,KNOWN_DISTANCE,w,h)
-				#print (z)
+				#print ('depth',z)
 				cat1=cat[0][i][j]
 				cat_ind= np.argmax(cat1)
 				res_bias.append([x,y,w,h,z,cat_ind])

@@ -1,0 +1,6 @@
+model_checkpoint_path: "YOLO_75000.ckpt"
+all_model_checkpoint_paths: "YOLO_55000.ckpt"
+all_model_checkpoint_paths: "YOLO_60000.ckpt"
+all_model_checkpoint_paths: "YOLO_65000.ckpt"
+all_model_checkpoint_paths: "YOLO_70000.ckpt"
+all_model_checkpoint_paths: "YOLO_75000.ckpt"

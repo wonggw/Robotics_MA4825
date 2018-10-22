@@ -11,4 +11,4 @@ while True:
 	coords = gesture_detection.get_coord_from_detection(img)
 	#print (coords)
 	t2=time.time()
-	#print (t2-t1)
+	print (t2-t1)

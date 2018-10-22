@@ -5,6 +5,7 @@ import os
 import time 
 
 acc = -1
+trainer_cnt = 0
 
 PARAM_RELU = 0
 PARAM_LRELU = 1
@@ -108,13 +109,12 @@ def get_all_vars(scope=None):
 def get_update_ops(scope=None):
 	return tf.get_collection(tf.GraphKeys.UPDATE_OPS,scope=scope)
 
-def get_var_decay(rate,scope=None):
+def get_var_decay(rate,rank=2,scope=None):
 	with tf.variable_scope('weight_decay'):
 		w = tf.get_collection('decay_variables',scope=scope)
-		decay_ops = [tf.assign_sub( v , (1.-rate)*v) for v in w]
-		with tf.control_dependencies(decay_ops):
-			decay_op = tf.no_op()
-	return decay_op
+		norm_term = tf.reduce_sum(tf.pow(w,rank))
+	return norm_term
+
 
 # ETA class. I want to see the ETA. It's too boring to wait here.
 class ETA():
@@ -143,6 +143,37 @@ class ETA():
 			return '%d:%d:%d'%(h,m,s)
 		else:
 			return h,m,s
+
+# make a trainer to support gradient accumulation
+class Trainer():
+	def __init__(self,learning_rate,loss,scope=None,**kwargs):
+		with tf.variable_scope('Trainer_%d'%trainer_cnt):
+			opt = tf.train.AdamOptimizer(learning_rate,**kwargs)
+
+			tv = tf.trainable_variables(scope)
+
+			self.accum = [tf.Variable(tf.zeros_like(v.initialized_value()), trainable=False) for v in tv]
+			self.zero_op = [v.assign(tf.zeros_like(v)) for v in self.accum]
+
+			gs = opt.compute_gradients(loss, tv)
+
+			self.accum_op = [self.accum[i].assign_add(g[0]) for i,g in enumerate(gs)]
+			with tf.control_dependencies(self.accum_op):
+				self.apply = opt.apply_gradients([(self.accum[i],g[1]) for i,g in enumerate(gs)])
+				with tf.control_dependencies([self.apply]):
+					self.train_op = [v.assign(tf.zeros_like(v)) for v in self.accum]
+
+	def accumulate(self):
+		return self.accum_op
+
+	def train(self):
+		return self.train_op
+
+	def apply_gradients(self):
+		return self.apply
+
+	def zero(self):
+		return self.zero_op
 
 class Model():
 	def __init__(self,inp,size=None):
@@ -209,7 +240,7 @@ class Model():
 			if layerin!=None:
 				self.result = layerin
 				self.inpsize = layerin.get_shape().as_list()
-			self.result = L.conv2D(self.result,kernel,outchn,'conv_'+str(self.layernum),stride=stride,pad=pad,usebias=usebias,kernel_data=kernel_data,bias_data=bias_data,dilation_rate=dilation_rate)
+			self.result = L.conv2D(self.result,kernel,outchn,'conv_'+str(self.layernum),stride=stride,pad=pad,usebias=usebias,kernel_data=kernel_data,bias_data=bias_data,dilation_rate=dilation_rate,weight_norm=weight_norm)
 			if batch_norm:
 				self.result = L.batch_norm(self.result,'batch_norm_'+str(self.layernum),training=self.bntraining,epsilon=self.epsilon)
 			self.layernum += 1
@@ -638,44 +669,62 @@ class Model():
 			self.sum(l0)
 		return self.result
 
+	def tile(self,arr):
+		self.result = tf.tile(self.result, arr)
+		self.inpsize = self.result.get_shape().as_list()
+		return self.result
+
 	def QAttention(self,feature):
 		with tf.variable_scope('Q_attention_'+str(self.layernum)):
-			e = tf.matmul(feature, self.result, transpose_b=True) # [featsize, 1]
-			# e = tf.squeeze(e)
-			e = tf.nn.softmax(e)
-			out = e * feature
-			out = tf.reduce_mean(out,0,keep_dims=True)
-			self.result = out 
+			def Qatt_batch(feat, q):
+				q = tf.expand_dims(q,axis=0)
+				e = tf.matmul(feat, q, transpose_b=True) # [featsize, 1]
+				e = tf.nn.softmax(e)
+				out = e * feat
+				out = tf.reduce_mean(out,0)
+				return out
+			self.result =  tf.map_fn(lambda x:Qatt_batch(x[0],x[1]) , (feature, self.result), dtype=tf.float32)
 			self.inpsize = self.result.get_shape().as_list()
 		return self.result
 
-	def squash_2d(self):
+	def squash_2d(self,inplayer=None):
+		if inplayer is None:
+			in_layer = self.result
+		else:
+			in_layer = inplayer
 		with tf.variable_scope('squash2d_'+str(self.layernum)):
-			sqr = tf.reduce_sum(tf.square(self.result),-1,keep_dims=True)
-			activate = sqr / (1+sqr)
-			self.result = activate * tf.nn.l2_normalize(self.result,-1)
-			self.inpsize = self.result.get_shape().as_list()
-			self.layernum += 1
-		return self.result
+			sqr = tf.reduce_sum(tf.square(in_layer),-1,keep_dims=True)
+			activate = sqr / (0.5+sqr)
+			res = activate * tf.nn.l2_normalize(in_layer,-1)
+			if in_layer is None:
+				self.result = res 
+				self.inpsize = self.result.get_shape().as_list()
+				self.layernum += 1
+				return self.result
+			else:
+				return res 
 
 	def dyn_route(self,feature,iter_num, is_squash=True):
-		if is_squash:
-			self.squash_2d()
 		with tf.variable_scope('route_merging_'+str(self.layernum)):
 			v_dim = feature.get_shape().as_list()[-1]
 			W = L.weight([vdim,vdim])
-			res = tf.matmul(self.result,W)
+		def fusion(feat):
+			if is_squash:
+				feat = self.squash_2d(feat)
+			res = tf.matmul(feat,W)
 			b = tf.zeros(tf.shape(res)[0])
 			for i in range(iter_num):
 				with tf.variable_scope('Routing_'+str(self.layernum)+'_'+str(i)):
 					c = tf.nn.softmax(b)
 					c = tf.stop_gradient(c) # dont know whether it s useful
-					self.result = tf.reduce_sum(c*res,0,keep_dims=True)  
-					self.squash_2d()
+					feat = tf.reduce_mean(c*res,0)  
+					# feat = self.squash_2d(feat)
 					if i!=iter_num-1:
 						b = tf.reduce_sum(tf.matmul(res, self.result, transpose_b=True), 1, keep_dims=True)
-			self.inpsize = self.result.get_shape().as_list()
-			self.layernum += 1
+			return feat
+		self.result = tf.map_fn(fusion, self.result)
+		self.inpsize = self.result.get_shape().as_list()
+		self.layernum += 1
 		return self.result
 
 	def NALU(self, outsize):

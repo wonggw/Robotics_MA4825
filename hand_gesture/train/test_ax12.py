@@ -12,7 +12,7 @@ ports = pypot.dynamixel.get_available_ports()
 
 
 dxl_io = pypot.dynamixel.DxlIO('/dev/ttyUSB0')
-servos_ids = dxl_io.scan([1,2])
+servos_ids = dxl_io.scan([1,3])
 print (ports)
 #time.sleep(1)
 
