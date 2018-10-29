@@ -13,7 +13,7 @@ class reader():
 		print('Loading images...')
 		self.data = []
 		# add a progressbar to make it better look
-		bar = progressbar.ProgressBar(max_value=1500)
+		bar = progressbar.ProgressBar(max_value=1900)
 		f = open('annotation.txt')
 		counter = 0
 		for i in f:
@@ -116,7 +116,7 @@ class reader():
 
 		bias_empty = np.zeros([height,width,4],np.float32)
 		conf_empty = np.zeros([height,width,1],np.float32)
-		cat_empty = np.zeros([height,width,3],np.float32)
+		cat_empty = np.zeros([height,width,4],np.float32)
 		# print(imgsize,grid_sizes[i])
 		result_dict=[conf_empty,bias_empty,cat_empty]
 		# get the column number and row number 

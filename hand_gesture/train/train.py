@@ -56,7 +56,7 @@ with tf.Session() as sess:
 	saver = tf.train.Saver()
 	#writer = tf.summary.FileWriter('./log', sess.graph)	# write to file
 	#merge_op = tf.summary.merge_all()			# operation to merge all summary
-	M.loadSess('./model/',sess,init=False)
+	M.loadSess('./model/',sess,init=True)
 	while True:
 		i+=1
 		for j in range(n_minibatches):

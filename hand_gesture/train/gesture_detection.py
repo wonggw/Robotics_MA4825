@@ -82,7 +82,7 @@ def non_max_sup(coords,scr):
 				del open_scr[i-1]
 	return result_coords
 
-def draw(img,coords):
+def draw(img,coords,name):
 	buff_img = img.copy()
 	coords = list(coords)
 	if coords:
@@ -90,7 +90,7 @@ def draw(img,coords):
 			x,y,w,h,_,cat = coords[i]
 			cv2.rectangle(buff_img,(x-w//2,y-h//2),(x+w//2,y+h//2),(0,255,0),2)
 			cv2.putText(buff_img, str(cat), (x,y), cv2.FONT_HERSHEY_SCRIPT_SIMPLEX, 3, (0,0,255),6)
-	cv2.imshow('result',buff_img)
+	cv2.imshow(name,buff_img)
 	cv2.waitKey(1)
 
 i = 0
@@ -98,7 +98,7 @@ i = 0
 sess = tf.Session()
 M.loadSess('./model/',sess,init=False)
 
-def get_coord_from_detection(img):
+def get_coord_from_detection(img,name="image"):
 
 	b,c,cat = sess.run([netpart.bias,netpart.conf,netpart.cat],feed_dict={netpart.inpholder:[img]})
 	res_bias,res_conf=get_img_coord(img,c,b,cat,64)
@@ -108,6 +108,6 @@ def get_coord_from_detection(img):
 		result_coords=res_bias
 	else:
 		result_coords=non_max_sup(res_bias,res_conf)
-	draw(img,result_coords)
+	draw(img,result_coords,name)
 	return result_coords
 #	return 1

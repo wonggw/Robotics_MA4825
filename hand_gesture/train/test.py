@@ -8,7 +8,7 @@ camera_thread.start()
 while True:
 	t1=time.time()
 	img = camera_thread.read()
-	coords = gesture_detection.get_coord_from_detection(img)
+	coords = gesture_detection.get_coord_from_detection(img,"handphone")
 	#print (coords)
 	t2=time.time()
 	print (t2-t1)

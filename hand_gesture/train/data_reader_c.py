@@ -114,7 +114,7 @@ class reader():
 
 		bias_empty = np.zeros([height,width,4],np.float32)
 		conf_empty = np.zeros([height,width,1],np.float32)
-		cat_empty = np.zeros([height,width,3],np.float32)
+		cat_empty = np.zeros([height,width,4],np.float32)
 		# print(imgsize,grid_sizes[i])
 		result_dict=[conf_empty,bias_empty,cat_empty]
 		# get the column number and row number 

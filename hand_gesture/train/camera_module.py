@@ -7,7 +7,7 @@ import os
 class camera_thread(threading.Thread):
 	def __init__(self):
 		self.http = 'http://'
-		self.ip_address = '10.27.127.117'
+		self.ip_address = '192.168.1.74'
 		self.url =  self.http + self.ip_address + ':4747/mjpegfeed?1024x768'
 		self.cap = cv2.VideoCapture(self.url)
 		#self.cap.set(14, 0.01)  #exposure

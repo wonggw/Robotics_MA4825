@@ -11,7 +11,7 @@ import os
 #if not os.path.exists('./model/'):
 #	os.mkdir('./model/')
 
-reader = data_reader_c.reader(height=480,width=640,scale_range=[0.8,1.1])
+reader = data_reader_c.reader(height=480,width=640,scale_range=[0.9,1.1])
 
 def draw(img,c,b,multip,name):
 	c = c[0]
@@ -49,11 +49,11 @@ def draw2(img,c,b,multip,name):
 	cv2.imshow(name,img)
 	cv2.waitKey(1)
 
-n_minibatches = 8
+n_minibatches = 2
 i = 0
 with tf.Session() as sess:
 	saver = tf.train.Saver()
-	M.loadSess('drive/Colab/hand_gesture/model/',sess,init=False)
+	M.loadSess('drive/Colab/hand_gesture/model/',sess,init=True)
 	while True:
 		i+=1
 
@@ -72,10 +72,10 @@ with tf.Session() as sess:
 			netpart.bias2_loss,netpart.conf_loss,netpart.cat_loss,
 			netpart.step,netpart.bias,netpart.conf], feed_dict=feed_dict_var)
 
-		if i%50==0:
+		if i%250==0:
 			#draw(img,c,b,64,'output')
 			print('Iter:\t%d\tBias1_L:%.6f\tBias2_L:%.6f\tConf_L:%.6f\tCat_L:%.6f'%(i,loss_b1,loss_b2,loss_c,loss_cat))
 
 
-		if i%5000==0 and i>0:
+		if i%25000==0 and i>0:
 			saver.save(sess,'drive/Colab/hand_gesture/model/YOLO_%d.ckpt'%i)
