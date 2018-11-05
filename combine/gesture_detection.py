@@ -15,8 +15,8 @@ def distance_to_camera(knownWidth_height, focalLength, perWidth,perHeight):
 def get_img_coord(img,c,b,cat,multip):
 	# get the coordinations by c and b
 	# multip is the gridsize.
-	KNOWN_DISTANCE = 0.32
-	KNOWN_WIDTH = 340
+	KNOWN_DISTANCE = 0.26
+	KNOWN_WIDTH = 452
 	res_bias = []
 	res_conf = []
 	c = c[0]
@@ -27,8 +27,8 @@ def get_img_coord(img,c,b,cat,multip):
 	for i in range(row):
 		for j in range(col):
 			# print(i,j)
-			if c[i][j][0]>=0.5:
-				print (c.max())
+			if c[i][j][0]>=0.0:
+				#print (c.max())
 				x = abs(int((b[i][j][0]+j+1/2)*multip))
 				y = abs(int((b[i][j][1]+i+1/2)*multip))
 				w = abs(int(b[i][j][2]*640))
@@ -62,7 +62,7 @@ def get_iou(inp1,inp2):
 
 def non_max_sup(coords,scr):
 	# recursively get the max score in open list and delete the overlapped areas which is more than threshold
-	non_max_thresh = 0.2
+	non_max_thresh = 0.5
 	open_coords = list(coords)
 	open_scr = list(scr)
 	result_coords = []

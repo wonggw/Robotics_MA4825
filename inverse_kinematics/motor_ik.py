@@ -15,7 +15,7 @@ print('Using the first on the list', port)
 
 dxl_io = pypot.dynamixel.DxlIO('/dev/ttyUSB0')
 print('Connected!')
-found_ids = dxl_io.scan([3,4,5])
+found_ids = dxl_io.scan([2,3,4,5,6])
 print('Found ids:', found_ids)
 
 arm = tinyik.Actuator([[0., -0.045, 0.],'y',[0., -0.04, 0.],'x', [0., -0.123, 0.], 'x', [0., -0.103, 0.]])
@@ -24,13 +24,15 @@ arm.ee = [0.0, -0.3,-0.1]
 arm_deg=np.round(np.rad2deg(arm.angles))
 
 #dxl_io.set_goal_position({found_ids[0]: 0,found_ids[2]: 0,found_ids[1]: 0})
-for i in range(1000):
-	dxl_io.set_moving_speed({found_ids[0]:150})
-	dxl_io.set_goal_position({found_ids[0]: arm_deg[0]})
-	dxl_io.set_moving_speed({found_ids[2]:150})
-	dxl_io.set_goal_position({found_ids[2]: arm_deg[1]})
-	dxl_io.set_moving_speed({found_ids[1]:150})
-	dxl_io.set_goal_position({found_ids[1]: arm_deg[2]})
+#dxl_io.set_moving_speed(dict(zip((3,), itertools.repeat(120))))
+#dxl_io.set_goal_position(dict(zip((3,), itertools.repeat(0))))
+#dxl_io.set_moving_speed(dict(zip((5,), itertools.repeat(120))))
+#dxl_io.set_goal_position(dict(zip((5,), itertools.repeat(0))))
+#dxl_io.set_moving_speed(dict(zip((4,), itertools.repeat(120))))
+#dxl_io.set_goal_position(dict(zip((4,), itertools.repeat(0))))
+#dxl_io.set_moving_speed(dict(zip((6,), itertools.repeat(150))))
+#dxl_io.set_goal_position(dict(zip((6,), itertools.repeat(80))))
+dxl_io.set_moving_speed(dict(zip((2,), itertools.repeat(-500))))
 time.sleep(1)
 
 
