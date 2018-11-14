@@ -1,6 +1,6 @@
 # Robotics_MA4825
 
-** Acknowledge this page if u used the script**
+ **Acknowledge this page if u used the script**
 
 * Hand guesture to control the base of the robot
 * Visual servoing with image feedback from a webcam
@@ -9,7 +9,7 @@
 
 ## Visual servoing with a robotic arm
 
-![alt text](https://github.com/wonggw/Robotics_MA4825/Presentation/Position-based-visual-servoing-scheme.png, "Visual servoing")
+![Visual servoing](https://github.com/wonggw/Robotics_MA4825/Presentation/Position-based-visual-servoing-scheme.png)
 
 1. YOLO for object detection
 2. Inverse kinematics using optimization to control the arm
