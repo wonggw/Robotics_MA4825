@@ -1,6 +1,6 @@
 # Robotics_MA4825
 
- **Acknowledge this page if u used the script**
+ **Acknowledge this page if u use the script**
 
 * Hand guesture to control the base of the robot
 * Visual servoing with image feedback from a webcam
