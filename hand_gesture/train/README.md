@@ -1,7 +1,7 @@
 ## To see the computation graph in tensorflow tensorboard
 
 ```
-tensorboard --logdir ./Robotics_MA4825/hand_gesture/train/log
+tensorboard --logdir ./hand_gesture/train/log
 ```
 
 ### Training
