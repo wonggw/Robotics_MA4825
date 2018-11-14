@@ -24,7 +24,7 @@ To excecute:
 python combine_arm_wheel.py
 ```
 
- *Installing dependencies*
+ Installing dependencies
 
 ```
 pip install -r requirements.txt
