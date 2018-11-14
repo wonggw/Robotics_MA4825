@@ -9,7 +9,7 @@
 
 ## Visual servoing with a robotic arm
 
-![Visual servoing](https://github.com/wonggw/Robotics_MA4825/Presentation/Position-based-visual-servoing-scheme.png)
+![Visual servoing](./Presentation/Position-based-visual-servoing-scheme.png)
 
 1. YOLO for object detection
 2. Inverse kinematics using optimization to control the arm
